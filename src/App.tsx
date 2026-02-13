@@ -24,7 +24,7 @@ function App() {
   return (
     <main className="bg-gray-100 min-h-screen font-sans flex flex-col">
       <header className="bg-white shadow-md p-4">
-        <h1 className="text-2xl font-bold text-gray-800">React-PDF Editor (ALPHA)</h1>
+        <h1 className="text-2xl font-bold text-gray-800">React-PDF Editor (ALPHA v2)</h1>
       </header>
       
       <section className="p-4 flex flex-col gap-6">

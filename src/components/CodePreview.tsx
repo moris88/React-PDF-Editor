@@ -18,7 +18,7 @@ function escapeRegExp(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-const CodePreview: React.FC<CodePreviewProps> = ({ value, props }) => {
+function CodePreview({ value, props }: Readonly<CodePreviewProps>) {
   const [code, setCode] = React.useState(value);
   const [copied, setCopied] = React.useState(false);
 
