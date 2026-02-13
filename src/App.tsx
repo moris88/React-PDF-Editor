@@ -2,17 +2,19 @@ import { useState } from 'react';
 import Editor from './components/Editor';
 import CodePreview from './components/CodePreview';
 import PdfPreview from './components/PdfPreview';
+import Placeholder from './components/Placeholder';
 
 function App() {
   // Stato per il contenuto dell'editor
   const [value, setValue] = useState('');
   const [props, setProps] = useState<Record<string, any>>({});
-  const [propsJson, setPropsJson] = useState('{}');
+  const [propsJson, setPropsJson] = useState<Record<string, any>>({});
+  const [type, setType] = useState<'code HTML' | 'preview PDF' | 'placeholder' | 'editor'>('editor');
 
-  const handlePropsChange = (json: string) => {
+  const handlePropsChange = (json: Record<string, any>) => {
     setPropsJson(json);
     try {
-      setProps(JSON.parse(json));
+      setProps(json);
     } catch (e) {
       console.error('Invalid JSON', e);
       setProps({});
@@ -20,39 +22,40 @@ function App() {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen font-sans">
+    <main className="bg-gray-100 min-h-screen font-sans flex flex-col">
       <header className="bg-white shadow-md p-4">
         <h1 className="text-2xl font-bold text-gray-800">React-PDF Editor (ALPHA)</h1>
       </header>
       
-      <main className="p-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Colonna 1: Editor */}
-        <div className="lg:col-span-1 h-full grid grid-rows-2 gap-4 p-2">
-          <Editor value={value} setValue={setValue} />
-          <div className="w-full h-full bg-white rounded-lg shadow-md p-4 flex flex-col">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Placeholder (JSON)</h2>
-            <textarea
-              className="w-full flex-grow border border-gray-300 rounded-lg p-3 text-base font-mono"
-              value={propsJson}
-              onChange={(e) => handlePropsChange(e.target.value)}
-            />
-          </div>
+      <section className="p-4 flex flex-col gap-6">
+        {/* Tab di navigazione */}
+        <div className="flex gap-4">
+          {['editor', 'placeholder', 'code HTML', 'preview PDF'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setType(tab as 'code HTML' | 'preview PDF' | 'placeholder' | 'editor')}
+              className={`px-4 py-2 rounded-md font-medium cursor-pointer hover:bg-blue-600 hover:text-white ${
+                type === tab ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+              }`}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            </button>
+          ))}
         </div>
 
-        {/* Colonna 2: Anteprime */}
-        <div className="h-full grid grid-rows-2 gap-4 p-2">
-          {/* Anteprima del codice */}
-          <div className="row-span-1 h-full">
-            <CodePreview value={value} props={props} />
-          </div>
-          
-          {/* Anteprima del PDF */}
-          <div className="row-span-1 h-full">
-            <PdfPreview value={value} props={props} />
-          </div>
-        </div>
-      </main>
-    </div>
+        {/* Editor */}
+        {type === 'editor' && <Editor value={value} setValue={setValue} />}
+
+        {/* Placeholder JSON */}
+        {type === 'placeholder' && <Placeholder value={propsJson} setValue={handlePropsChange} />}
+        
+        {/* CodePreview */}
+        {type === 'code HTML' && <CodePreview value={value} props={props} />}
+
+        {/* PdfPreview */}
+        {type === 'preview PDF' && <PdfPreview value={value} props={props} />}
+      </section>
+    </main>
   );
 }
 

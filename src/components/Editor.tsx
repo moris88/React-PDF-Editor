@@ -29,15 +29,15 @@ function Editor({ value, setValue }: Readonly<EditorProps>) {
   ];
 
   return (
-    <div className="w-full h-full bg-white rounded-lg shadow-md p-4 flex flex-col">
-      <h2 className="text-xl font-bold mb-4 text-gray-800">Editor</h2>
+    <div className="w-full h-[calc(100vh-10rem)] bg-white rounded-lg shadow-md p-4 flex flex-col">
+      <p className="italic text-sm">Inserire il testo del documento (si possono utilizzare i placeholder definiti nel JSON, esempio &quot;{'{{'}nome{'}}'}&quot;)</p>
       <ReactQuill
         theme="snow"
         value={value}
         onChange={setValue}
         modules={modules}
         formats={formats}
-        className="h-[calc(100%-100px)]"
+        className="w-full h-[calc(100vh-16rem)]"
       />
     </div>
   );

@@ -7,7 +7,6 @@ interface PdfPreviewProps {
   props: Record<string, any>;
 }
 
-// Funzione per sostituire i placeholder {{name}} con i valori reali
 const replacePlaceholders = (html: string, props: Record<string, any>) => {
   let replaced = html;
   Object.entries(props).forEach(([key, val]) => {
@@ -31,11 +30,9 @@ const PdfPreview: React.FC<PdfPreviewProps> = ({ value, props }) => {
   );
 
   return (
-    <div className="w-full h-full border-4 border-[#3b3b3b] rounded-lg bg-[#3b3b3b]">
-      <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+      <PDFViewer width="100%" className="rounded-lg shadow-md h-[calc(100vh-10rem)]">
         {MyDocument}
       </PDFViewer>
-    </div>
   );
 };
 

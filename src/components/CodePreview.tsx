@@ -1,5 +1,13 @@
-import React, { useEffect, useRef, useMemo } from 'react';
-import prism from 'prismjs';
+import React from "react";
+import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
+import htmlLang from "react-syntax-highlighter/dist/esm/languages/hljs/xml";
+import { docco } from "react-syntax-highlighter/dist/esm/styles/hljs";
+
+import prettier from "prettier/standalone";
+import parserHtml from "prettier/plugins/html";
+
+// registra linguaggio html
+SyntaxHighlighter.registerLanguage("html", htmlLang);
 
 interface CodePreviewProps {
   props: Record<string, any>;
@@ -7,70 +15,75 @@ interface CodePreviewProps {
 }
 
 function escapeRegExp(s: string) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 const CodePreview: React.FC<CodePreviewProps> = ({ value, props }) => {
-  const codeEl = useRef<HTMLElement | null>(null);
+  const [code, setCode] = React.useState(value);
+  const [copied, setCopied] = React.useState(false);
 
-  const { code } = useMemo(() => {
-    // 1) Sostituisci i placeholder {{name}} con i valori reali
-    let replacedValue = value;
-    Object.entries(props).forEach(([key, val]) => {
-      const re = new RegExp(`\\{\\{\\s*${escapeRegExp(key)}\\s*\\}\\}`, 'g');
-      replacedValue = replacedValue.replace(re, String(val));
-    });
+  React.useEffect(() => {
+    const processCode = async () => {
+      let replacedValue = value;
 
-    // 2) Escape backticks per il template literal
-    const escapedHtml = replacedValue.replace(/`/g, '\\`');
+      Object.entries(props).forEach(([key, val]) => {
+        const re = new RegExp(`\\{\\{\\s*${escapeRegExp(key)}\\s*\\}\\}`, "g");
+        replacedValue = replacedValue.replace(re, String(val));
+      });
 
-    // 3) Indenta per la preview
-    const indentedHtml = escapedHtml
-      .split('\n')
-      .map(line => '      ' + line)
-      .join('\n');
+      try {
+        replacedValue = await prettier.format(replacedValue, {
+          parser: "html",
+          plugins: [parserHtml],
+        });
+      } catch { 
+        // Se la formattazione fallisce, mantieni il codice originale
+      }
 
-    // 4) Genera il codice usando @react-pdf/renderer-html
-    const code = `import React from 'react';
-import { Page, Document, StyleSheet } from '@react-pdf/renderer';
-import { Html } from '@react-pdf/renderer-html';
+      setCode(replacedValue);
+    };
 
-const MyDocument = () => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <Html>
-      {\`
-      ${indentedHtml}
-      \`}
-      </Html>
-    </Page>
-  </Document>
-);
-
-const styles = StyleSheet.create({
-  page: {
-    padding: 20,
-  },
-});
-
-export default MyDocument;
-`;
-
-    return { code };
+    processCode();
   }, [value, props]);
 
-  useEffect(() => {
-    if (!codeEl.current) return;
-    codeEl.current.textContent = code;
-    prism.highlightElement(codeEl.current);
-  }, [code]);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      console.error("Copy failed");
+    }
+  };
 
   return (
-    <div className="w-full h-full bg-gray-800 text-white font-mono text-sm rounded-lg p-4 overflow-auto">
-      <h2 className="text-xl font-bold mb-4 text-gray-300">React-PDF Code</h2>
-      <pre>
-        <code ref={codeEl} className="language-javascript" />
-      </pre>
+    <div className="w-full h-[calc(100vh-10rem)] bg-white rounded-lg shadow-md p-4 flex flex-col">
+
+      {/* Header */}
+      <div className="flex justify-between items-center mb-2">
+        <p className="italic text-sm">
+          Codice HTML generato (con sostituzione dei placeholder)
+        </p>
+
+        <button
+          onClick={handleCopy}
+          className="px-3 py-1 text-sm rounded bg-blue-500 text-white hover:bg-blue-600 cursor-pointer transition"
+        >
+          {copied ? "Copiato ✓" : "Copia codice"}
+        </button>
+      </div>
+
+      {/* Code */}
+      <div className="flex-1 overflow-auto">
+        <SyntaxHighlighter
+          language="html"
+          style={docco}
+          showLineNumbers
+          wrapLongLines
+        >
+          {code}
+        </SyntaxHighlighter>
+      </div>
     </div>
   );
 };
